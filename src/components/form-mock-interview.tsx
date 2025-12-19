@@ -22,7 +22,7 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { chatSession } from "@/scripts";
+import { createChatSession } from "@/scripts";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 
@@ -81,36 +81,91 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         throw new Error("No JSON array found in response");
     }
     
-    // Step 4: Parse the clean JSON text into an array of objects
+    // Step 4: Fix common escape sequence issues
+    cleanText = cleanText
+        .replace(/\\'/g, "'")  // Replace \' with just '
+        .replace(/\\"/g, '"')  // Replace \" with just "
+        .replace(/\\\\/g, '\\') // Fix double backslashes
+        .replace(/\\n/g, ' ')   // Replace newlines with spaces
+        .replace(/\\t/g, ' ')   // Replace tabs with spaces
+        .replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
+    
+    // Step 5: Handle truncated JSON by ensuring proper closing
+    // Check if array is properly closed
+    const openBraces = (cleanText.match(/\{/g) || []).length;
+    const closeBraces = (cleanText.match(/\}/g) || []).length;
+    
+    if (openBraces > closeBraces) {
+        // Truncated - remove incomplete last object
+        const lastCompleteIndex = cleanText.lastIndexOf('},');
+        if (lastCompleteIndex > 0) {
+            cleanText = cleanText.substring(0, lastCompleteIndex + 1) + ']';
+        } else {
+            throw new Error("Response was truncated and cannot be recovered");
+        }
+    }
+    
+    // Step 6: Parse the clean JSON text into an array of objects
     try {
         return JSON.parse(cleanText);
     } catch (error) {
+        console.error("Failed to parse JSON:", cleanText.substring(0, 500));
         throw new Error("Invalid JSON format: " + (error as Error)?.message);
     }
   };
 
+  const getDifficulty = (exp: number): string => {
+    if (exp <= 1) return "easy";
+    if (exp <= 3) return "medium";
+    return "hard";
+  };
+
+  const getTimeLimitByType = (type: string, difficulty: string): number => {
+    const baseTime = { easy: 180, medium: 300, hard: 420 }; // in seconds
+    if (type === "DSA") return baseTime[difficulty as keyof typeof baseTime] + 120; // DSA gets more time
+    if (type === "HR") return 120; // HR questions get 2 minutes
+    return baseTime[difficulty as keyof typeof baseTime];
+  };
+
   const generateAiResponse = async (data: FormData) => {
-    const prompt = `
-        As an experienced prompt engineer, generate a JSON array containing 5 technical interview questions along with detailed answers based on the following job information. Each object in the array should have the fields "question" and "answer", formatted as follows:
+    const TOTAL_QUESTIONS = 15;
+    const difficulty = getDifficulty(data.experience);
 
-        [
-          { "question": "<Question text>", "answer": "<Answer text>" },
-          ...
-        ]
+    const prompt = `Generate ${TOTAL_QUESTIONS} interview questions as JSON array.
 
-        Job Information:
-        - Job Position: ${data?.position}
-        - Job Description: ${data?.description}
-        - Years of Experience Required: ${data?.experience}
-        - Tech Stacks: ${data?.techStack}
+Position: ${data.position}
+Experience: ${data.experience} years
+Tech Stack: ${data.techStack}
+Difficulty: ${difficulty}
 
-        The questions should assess skills in ${data?.techStack} development and best practices, problem-solving, and experience handling complex requirements. Please format the output strictly as an array of JSON objects without any additional labels, code blocks, or explanations. Return only the JSON array with questions and answers.
-        `;
+Distribution: 6 TECH (${data.techStack}), 6 DSA, 3 HR questions
 
+DSA Topics: ${data.experience <= 1 ? 'Arrays, Strings' : data.experience <= 3 ? 'HashMaps, Recursion, Sorting' : 'Trees, Graphs, DP'}
+
+Format (keep expectedAnswer concise, max 3 sentences):
+[{
+  "id": "Q1",
+  "question": "...",
+  "type": "TECH|DSA|HR",
+  "difficulty": "${difficulty}",
+  "expectedAnswer": "Key points only",
+  "timeLimitSec": 300
+}]
+
+Return ONLY valid JSON array.`;
+
+    const chatSession = createChatSession();
     const aiResult = await chatSession.sendMessage(prompt);
     const cleanedResponse = cleanAiResponse(aiResult.response.text());
 
-    return cleanedResponse;
+    // Add IDs and time limits if not present
+    const questionsWithMeta = cleanedResponse.map((q: any, index: number) => ({
+      ...q,
+      id: q.id || `q_${Date.now()}_${index}`,
+      timeLimitSec: q.timeLimitSec || getTimeLimitByType(q.type, q.difficulty)
+    }));
+
+    return questionsWithMeta;
   };
 
   const onSubmit = async (data: FormData) => {
@@ -121,9 +176,15 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         // update
         if (isValid) {
           const aiResult = await generateAiResponse(data);
+          const totalTimeSec = aiResult.reduce((sum: number, q: any) => sum + q.timeLimitSec, 0);
 
           await updateDoc(doc(db, "interviews", initialData?.id), {
             questions: aiResult,
+            interviewMeta: {
+              totalQuestions: aiResult.length,
+              totalTimeSec,
+              experienceLevel: data.experience
+            },
             ...data,
             updatedAt: serverTimestamp(),
           }).catch((error) => console.log(error));
@@ -133,15 +194,25 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         // create a new mock interview
         if (isValid) {
           const aiResult = await generateAiResponse(data);
+          const totalTimeSec = aiResult.reduce((sum: number, q: any) => sum + q.timeLimitSec, 0);
 
-          await addDoc(collection(db, "interviews"), {
+          const docRef = await addDoc(collection(db, "interviews"), {
             ...data,
             userId,
             questions: aiResult,
+            interviewMeta: {
+              totalQuestions: aiResult.length,
+              totalTimeSec,
+              experienceLevel: data.experience
+            },
             createdAt: serverTimestamp(),
           });
 
           toast(toastMessage.title, { description: toastMessage.description });
+          
+          // Navigate to the interview setup page with webcam
+          navigate(`/generate/interview/${docRef.id}`, { replace: true });
+          return;
         }
       }
 

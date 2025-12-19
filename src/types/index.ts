@@ -9,6 +9,24 @@ export interface User {
   updateAt: Timestamp | FieldValue;
 }
 
+export type QuestionType = "TECH" | "DSA" | "HR";
+export type Difficulty = "easy" | "medium" | "hard";
+
+export interface Question {
+  id: string;
+  question: string;
+  type: QuestionType;
+  difficulty: Difficulty;
+  expectedAnswer: string;
+  timeLimitSec: number;
+}
+
+export interface InterviewMeta {
+  totalQuestions: number;
+  totalTimeSec: number;
+  experienceLevel: number;
+}
+
 export interface Interview {
   id: string;
   position: string;
@@ -16,7 +34,8 @@ export interface Interview {
   experience: number;
   userId: string;
   techStack: string;
-  questions: { question: string; answer: string }[];
+  questions: Question[];
+  interviewMeta: InterviewMeta;
   createdAt: Timestamp;
   updateAt: Timestamp;
 }
@@ -24,12 +43,31 @@ export interface Interview {
 export interface UserAnswer {
   id: string;
   mockIdRef: string;
+  questionId: string;
   question: string;
-  correct_ans: string;
-  user_ans: string;
-  feedback: string;
-  rating: number;
+  userAnswer: string;
+  timeTaken: number;
   userId: string;
   createdAt: Timestamp;
-  updateAt: Timestamp;
+}
+
+export interface EvaluationResult {
+  questionId: string;
+  score: number;
+  strengths: string;
+  weaknesses: string;
+  feedback: string;
+}
+
+export interface InterviewResult {
+  id: string;
+  mockIdRef: string;
+  userId: string;
+  answers: UserAnswer[];
+  evaluations: EvaluationResult[];
+  totalScore: number;
+  strengths: string;
+  weaknesses: string;
+  overallFeedback: string;
+  createdAt: Timestamp;
 }

@@ -58,15 +58,11 @@ const HomePage = () => {
           </div>
 
           <div className="hidden md:block absolute w-80 bottom-4 right-4 px-4 py-2 rounded-md bg-white/60 backdrop-blur-md">
-            <h2 className="text-neutral-800 font-semibold">Developer</h2>
+            <h2 className="text-neutral-800 font-semibold">Software Developer</h2>
             <p className="text-sm text-neutral-500">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Numquam
-              distinctio natus, quos voluptatibus magni sapiente.
+              Practice real interview scenarios with AI-powered feedback. Get personalized questions tailored to your role and experience level.
             </p>
 
-            <Button className="mt-3">
-              Generate <Sparkles />
-            </Button>
           </div>
         </div>
       </Container>
@@ -86,7 +82,16 @@ const HomePage = () => {
       </div>
 
       <Container className="py-8 space-y-8">
-        <h2 className="tracking-wide text-xl text-gray-800 font-semibold">
+        <div className="border-l-4 border-blue-500 pl-6 py-4 bg-gray-50 rounded-r-lg">
+          <p className="text-lg text-gray-700 italic mb-2">
+            &ldquo;Every great developer you know got there by solving problems they were unqualified to solve until they actually did it.&rdquo;
+          </p>
+          <p className="text-sm text-gray-600 font-semibold">
+            &mdash; Patrick McKenzie
+          </p>
+        </div>
+
+        <h2 className="tracking-wide text-xl text-gray-800 font-semibold mt-8">
           Unleash your potential with personalized AI insights and targeted
           interview practice.
         </h2>
@@ -108,7 +113,7 @@ const HomePage = () => {
             </p>
             <Link to={"/generate"} className="w-full">
               <Button className="w-3/4">
-                Generate <Sparkles className="ml-2" />
+                Let's Practice <Sparkles className="ml-2" />
               </Button>
             </Link>
           </div>

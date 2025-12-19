@@ -86,7 +86,7 @@ export const InterviewPin = ({
                             content="Start"
                             buttonVariant={"ghost"}
                             onClick={() => {
-                                navigate(`/generate/interview/${interview?.id}`, {
+                                navigate(`/generate/interview/${interview?.id}/start`, {
                                 replace: true,
                                 });
                             }}

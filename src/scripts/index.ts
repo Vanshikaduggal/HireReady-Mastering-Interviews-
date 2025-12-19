@@ -8,15 +8,15 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY!;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-flash-latest",
 });
 
 const generationConfig = {
     temperature: 1,
     topP: 0.95,
     topK: 40,
-    maxOutputTokens: 8192,
-    responseMimeType: "text/plain",
+    maxOutputTokens: 16384,
+    responseMimeType: "application/json",
 };
 
 const safetySettings = [
@@ -38,6 +38,15 @@ const safetySettings = [
     },
 ];
 
+// Export a function to create a new chat session for each request
+export const createChatSession = () => {
+    return model.startChat({
+        generationConfig,
+        safetySettings,
+    });
+};
+
+// Keep the old export for backward compatibility but create a new session
 export const chatSession = model.startChat({
     generationConfig,
     safetySettings,

@@ -7,7 +7,7 @@ import { db } from "@/config/firebase.config";
 import { Interview } from "@/types";
 import { useAuth } from "@clerk/clerk-react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Plus, BarChart3 } from "lucide-react";
+import { Plus, BarChart3, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -65,6 +65,11 @@ export const Dashboard = () => {
                     </Button>
                     </Link>
                 )}
+                <Link to={"/generate/phonic-schedule"}>
+                    <Button size={"sm"} variant="outline" className="bg-blue-50 dark:bg-blue-950 border-blue-300">
+                    <Phone className="w-4 h-4 mr-1" /> Phone Interview
+                    </Button>
+                </Link>
                 <Link to={"/generate/create"}>
                     <Button size={"sm"}>
                     <Plus /> Add New

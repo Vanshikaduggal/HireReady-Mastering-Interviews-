@@ -7,7 +7,7 @@ import { db } from "@/config/firebase.config";
 import { Interview } from "@/types";
 import { useAuth } from "@clerk/clerk-react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Plus } from "lucide-react";
+import { Plus, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -57,11 +57,20 @@ export const Dashboard = () => {
                 title="Dashboard"
                 description="Create and start you AI Mock interview"
                 />
+                <div className="flex items-center gap-2">
+                {interviews.length > 0 && (
+                    <Link to={"/generate/performance"}>
+                    <Button size={"sm"} variant="outline">
+                        <BarChart3 className="w-4 h-4 mr-1" /> Performance
+                    </Button>
+                    </Link>
+                )}
                 <Link to={"/generate/create"}>
-                <Button size={"sm"}>
+                    <Button size={"sm"}>
                     <Plus /> Add New
-                </Button>
+                    </Button>
                 </Link>
+                </div>
             </div>
 
             <Separator className="my-8" />

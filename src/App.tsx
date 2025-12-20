@@ -8,6 +8,7 @@ import ProtectRoutes from "./layouts/protected-routes"
 import { MainLayout } from "./layouts/main-layout"
 import { Generate } from "./components/generate"
 import { Dashboard } from "./routes/dashboard"
+import { DashboardPerformance } from "./routes/dashboard-performance"
 import { CreateEditPage } from "./routes/create-edit-page"
 import { MockLoadPage } from "./routes/mock-load-page"
 import { MockInterviewPage } from "./routes/mock-interview-page"
@@ -45,6 +46,7 @@ const App = () => {
           {/* add all the protect routes */}
           <Route element={<Generate />} path="/generate">
             <Route index element={<Dashboard />} />
+            <Route path="performance" element={<DashboardPerformance />} />
             <Route path=":interviewId" element={<CreateEditPage />} />
             <Route path="interview/:interviewId" element={<MockLoadPage />} />
             <Route

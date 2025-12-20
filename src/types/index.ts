@@ -49,6 +49,10 @@ export interface UserAnswer {
   timeTaken: number;
   userId: string;
   createdAt: Timestamp;
+  rating?: number;
+  correct_ans?: string;
+  user_ans?: string;
+  feedback?: string;
 }
 
 export interface EvaluationResult {

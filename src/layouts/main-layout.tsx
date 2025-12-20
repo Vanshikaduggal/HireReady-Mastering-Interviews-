@@ -1,6 +1,7 @@
 import { Container } from "@/components/container";
 import { Footer } from "@/components/footer";
 import Header from "@/components/header";
+import { FloatingMentorChatbot } from "@/components/floating-mentor-chatbot";
 import { Outlet } from "react-router-dom";
 
 export const MainLayout = () => {
@@ -15,6 +16,9 @@ export const MainLayout = () => {
         </Container>
   
         <Footer />
+        
+        {/* Floating chatbot available on all pages */}
+        <FloatingMentorChatbot />
       </div>
     );
 };

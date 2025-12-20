@@ -1,0 +1,175 @@
+{
+  "name": "HireReady AI Phone Interview",
+  "nodes": [
+    {
+      "parameters": {
+        "calendarId": "={{$env.GOOGLE_CALENDAR_ID}}",
+        "start": "={{$now.plus(1, 'minute').toISO()}}",
+        "end": "={{$now.plus(20, 'minutes').toISO()}}"
+      },
+      "id": "google-calendar-trigger",
+      "name": "Google Calendar Trigger",
+      "type": "n8n-nodes-base.googleCalendarTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.summary}}",
+              "operation": "contains",
+              "value2": "HireReady – Phonic Mock Interview"
+            }
+          ]
+        }
+      },
+      "id": "filter-hireready-events",
+      "name": "Filter HireReady Events",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract phone number from calendar event\nconst description = $input.item.json.description || '';\nconst phoneMatch = description.match(/Phone: (\\+\\d+)/);\nconst userIdMatch = description.match(/User ID: ([^\\n]+)/);\n\nconst phone = phoneMatch ? phoneMatch[1] : null;\nconst userId = userIdMatch ? userIdMatch[1] : null;\n\nif (!phone) {\n  throw new Error('Phone number not found in calendar event');\n}\n\nreturn {\n  json: {\n    phone,\n    userId,\n    eventId: $input.item.json.id,\n    eventTitle: $input.item.json.summary,\n    startTime: $input.item.json.start.dateTime\n  }\n};"
+      },
+      "id": "extract-interview-data",
+      "name": "Extract Interview Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/phonic/webhook/initiate",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"phone\": \"{{$json.phone}}\",\n  \"userId\": \"{{$json.userId}}\",\n  \"eventId\": \"{{$json.eventId}}\"\n}"
+      },
+      "id": "notify-backend",
+      "name": "Notify Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "fromNumber": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "toNumber": "={{$json.phone}}",
+        "message": "",
+        "options": {
+          "callbackUrl": "={{$env.BACKEND_URL}}/phonic/webhook/status"
+        },
+        "url": "={{$env.BACKEND_URL}}/phonic/webhook/voice"
+      },
+      "id": "twilio-make-call",
+      "name": "Twilio Make Call",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1130, 300],
+      "credentials": {
+        "twilioApi": {
+          "id": "1",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "waitTime": 900
+      },
+      "id": "wait-for-interview",
+      "name": "Wait for Interview (15 min)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/phonic/webhook/get-transcript/{{$json.eventId}}",
+        "method": "GET",
+        "options": {}
+      },
+      "id": "fetch-transcript",
+      "name": "Fetch Transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1570, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/phonic/feedback/generate",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"interviewId\": \"{{$node['Extract Interview Data'].json.eventId}}\",\n  \"transcript\": {{$node['Fetch Transcript'].json.transcript}}\n}"
+      },
+      "id": "gemini-feedback",
+      "name": "Gemini - Generate Feedback (FREE)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1790, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/phonic/webhook/save-feedback",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"userId\": \"{{$node['Extract Interview Data'].json.userId}}\",\n  \"eventId\": \"{{$node['Extract Interview Data'].json.eventId}}\",\n  \"transcript\": \"{{$node['Fetch Transcript'].json.transcript}}\",\n  \"feedback\": {{$json.choices[0].message.content}},\n  \"completedAt\": \"{{$now.toISO()}}\"\n}"
+      },
+      "id": "save-to-firebase",
+      "name": "Save to Firebase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2010, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendEmail",
+        "fromEmail": "noreply@hireready.com",
+        "toEmail": "={{$node['Extract Interview Data'].json.userId}}@example.com",
+        "subject": "Your HireReady Phone Interview Results",
+        "text": "=Your mock phone interview has been completed!\n\nView your detailed feedback and transcript in your dashboard:\n{{$env.FRONTEND_URL}}/dashboard/phonic-results/{{$node['Extract Interview Data'].json.eventId}}\n\nThank you for using HireReady!"
+      },
+      "id": "send-notification",
+      "name": "Send Email Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2230, 300]
+    }
+  ],
+  "connections": {
+    "Google Calendar Trigger": {
+      "main": [[{"node": "Filter HireReady Events", "type": "main", "index": 0}]]
+    },
+    "Filter HireReady Events": {
+      "main": [[{"node": "Extract Interview Data", "type": "main", "index": 0}]]
+    },
+    "Extract Interview Data": {
+      "main": [[{"node": "Notify Backend", "type": "main", "index": 0}]]
+    },
+    "Notify Backend": {
+      "main": [[{"node": "Twilio Make Call", "type": "main", "index": 0}]]
+    },
+    "Twilio Make Call": {
+      "main": [[{"node": "Wait for Interview (15 min)", "type": "main", "index": 0}]]
+    },
+    "Wait for Interview (15 min)": {
+      "main": [[{"node": "Fetch Transcript", "type": "main", "index": 0}]]
+    },
+    "Fetch Transcript": {
+      "main": [[{"node": "Gemini - Generate Feedback (FREE)", "type": "main", "index": 0}]]
+    },
+    "Gemini - Generate Feedback (FREE)": {
+      "main": [[{"node": "Save to Firebase", "type": "main", "index": 0}]]
+    },
+    "Save to Firebase": {
+      "main": [[{"node": "Send Email Notification", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

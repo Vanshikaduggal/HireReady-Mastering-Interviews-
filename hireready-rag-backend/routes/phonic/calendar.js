@@ -19,44 +19,45 @@ const oauth2Client = new google.auth.GoogleAuth({
  * POST /phonic/schedule
  * Schedule a phonic interview
  */
-router.post("/schedule", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { userId, userName, userPhone, scheduledDate, scheduledTime, duration = 15 } = req.body;
+    const { userId, userName, userPhone, scheduledAt, timezone = "Asia/Kolkata", duration = 15 } = req.body;
 
     // Validation
-    if (!userId || !userPhone || !scheduledDate || !scheduledTime) {
+    if (!userId || !userPhone || !scheduledAt) {
       return res.status(400).json({ 
-        error: "Missing required fields: userId, userPhone, scheduledDate, scheduledTime" 
+        error: "Missing required fields: userId, userPhone, scheduledAt" 
       });
     }
 
-    // Combine date and time (user inputs are in IST)
-    const startDateTimeStr = `${scheduledDate}T${scheduledTime}:00`;
+    // Calculate end time by adding duration to start time
+    // Parse scheduledAt to get timestamp, add duration minutes
+    const startDate = new Date(scheduledAt);
+    const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
     
-    // Calculate end time
-    const startDateTime = new Date(startDateTimeStr);
-    const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
-    const endHours = String(endDateTime.getHours()).padStart(2, '0');
-    const endMinutes = String(endDateTime.getMinutes()).padStart(2, '0');
-    const endDateTimeStr = `${scheduledDate}T${endHours}:${endMinutes}:00`;
+    // Format times for Google Calendar (local time format, no Z)
+    // If scheduledAt has Z, remove it; otherwise keep as-is
+    const startDateTime = scheduledAt.endsWith('Z') ? scheduledAt.replace('Z', '') : scheduledAt;
+    const endDateTime = endDate.toISOString().slice(0, -1); // Remove Z
 
     console.log(`📅 Scheduling phonic interview for ${userName || userPhone}`);
-    console.log(`   Start (IST): ${startDateTimeStr}`);
-    console.log(`   End (IST): ${endDateTimeStr}`);
+    console.log(`   Start: ${startDateTime} (${timezone})`);
+    console.log(`   End: ${endDateTime} (${timezone})`);
+    console.log(`   Duration: ${duration} minutes`);
 
     // Create Google Calendar event
     const auth = await oauth2Client.getClient();
     
     const event = {
-      summary: `HireReady – Phonic Mock Interview (${userName || "User"})`,
-      description: `AI-powered phone interview\nUser: ${userName || "N/A"}\nPhone: ${userPhone}\nUser ID: ${userId}`,
+      summary: `[PHONIC] HireReady – Phonic Mock Interview (${userName || "User"})`,
+      description: `[HIREREADY_INTERVIEW]\nAI-powered phone interview\nUser: ${userName || "N/A"}\nPhone: ${userPhone}\nUser ID: ${userId}\nType: PHONIC_INTERVIEW`,
       start: {
-        dateTime: startDateTimeStr,  // Pass IST time directly with timezone
-        timeZone: "Asia/Kolkata",    // Let Google Calendar handle UTC conversion
+        dateTime: startDateTime,
+        timeZone: timezone,
       },
       end: {
-        dateTime: endDateTimeStr,    // Pass IST time directly with timezone
-        timeZone: "Asia/Kolkata",
+        dateTime: endDateTime,
+        timeZone: timezone,
       },
       reminders: {
         useDefault: false,
@@ -91,7 +92,7 @@ router.post("/schedule", async (req, res) => {
       userId,
       userPhone,
       userName: userName || null,
-      scheduledAt: startDateTime.toISOString(),
+      scheduledAt: startDate.toISOString(),
       duration,
       status: "scheduled",
       createdAt: new Date().toISOString(),

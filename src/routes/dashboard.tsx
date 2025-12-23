@@ -55,7 +55,7 @@ export const Dashboard = () => {
                 {/* headings */}
                 <Headings
                 title="Dashboard"
-                description="Create and start you AI Mock interview"
+                description="Create and start your HireReady interview"
                 />
                 <div className="flex items-center gap-2">
                 {interviews.length > 0 && (
@@ -67,7 +67,12 @@ export const Dashboard = () => {
                 )}
                 <Link to={"/generate/phonic-schedule"}>
                     <Button size={"sm"} variant="outline" className="bg-blue-50 dark:bg-blue-950 border-blue-300">
-                    <Phone className="w-4 h-4 mr-1" /> Phone Interview
+                    <Phone className="w-4 h-4 mr-1" /> Schedule Interview
+                    </Button>
+                </Link>
+                <Link to={"/generate/phone-client"}>
+                    <Button size={"sm"} variant="outline" className="bg-green-50 dark:bg-green-950 border-green-300">
+                    <Phone className="w-4 h-4 mr-1" /> Join Call
                     </Button>
                 </Link>
                 <Link to={"/generate/create"}>

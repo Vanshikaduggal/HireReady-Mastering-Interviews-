@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { LoaderPage } from "./loader-page";
 import { CustomBreadCrumb } from "@/components/custom-bread-crumb";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Sparkles, WebcamIcon } from "lucide-react";
+import { Lightbulb, Sparkles, WebcamIcon, ShieldCheck } from "lucide-react";
 import { InterviewPin } from "@/components/pin";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Webcam from "react-webcam";
@@ -20,6 +20,8 @@ export const MockLoadPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isWebCamEnabled, setIsWebCamEnabled] = useState(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
+    const [baselineVerified, setBaselineVerified] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
     const webcamRef = useRef<Webcam>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -61,11 +63,21 @@ export const MockLoadPage = () => {
         }
     }, [isWebCamEnabled]);
 
-    const { captureBaseline } = useFaceDetection({
+    const { captureBaseline, isModelsLoaded } = useFaceDetection({
         videoElement: videoRef.current,
         isEnabled: false, // Not monitoring during setup, only baseline
         onViolation: () => {}, // Not used during baseline
     });
+
+    const handleVerifyBaseline = async () => {
+        if (!isCameraReady || !videoRef.current) {
+            toast.error("Camera still loading", {
+                description: "Please wait a moment for the camera to initialize.",
+            });
+            return;
+        }
+
+        setIsVerifying(true);
         
         try {
             // captureBaseline now handles waiting for camera to be ready

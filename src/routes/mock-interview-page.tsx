@@ -84,7 +84,7 @@ export const MockInterviewPage = () => {
         });
     };
 
-    const { faceCount, isModelsLoaded } = useFaceDetection({
+    const { faceCount } = useFaceDetection({
         videoElement: videoRef.current,
         isEnabled: isMonitoring && isWebCamEnabled,
         onViolation: handleViolation,

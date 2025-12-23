@@ -1,0 +1,143 @@
+{
+  "name": "HireReady – Upcoming Phonic Interview Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "calendarId": "vanshika131105@gmail.com",
+        "event": "eventStart",
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "options": {
+          "timeMin": "={{$now.minus(2, 'minutes').toISO()}}"
+        }
+      },
+      "id": "google-calendar-trigger",
+      "name": "Google Calendar Trigger",
+      "type": "n8n-nodes-base.googleCalendarTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "dateTime": [
+            {
+              "value1": "={{$json.start.dateTime}}",
+              "operation": "after",
+              "value2": "={{$now.toISO()}}"
+            }
+          ]
+        }
+      },
+      "id": "if-upcoming",
+      "name": "IF Upcoming Event",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.description}}",
+              "operation": "contains",
+              "value2": "[HIREREADY_INTERVIEW]"
+            }
+          ]
+        }
+      },
+      "id": "filter-hireready",
+      "name": "Filter HireReady Events",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [640, 300]
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.description}}",
+              "operation": "notContains",
+              "value2": "[HIREREADY_PROCESSED]"
+            }
+          ]
+        }
+      },
+      "id": "filter-not-processed",
+      "name": "GUARD: Not Processed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+
+    {
+      "parameters": {
+        "functionCode": "// Safe extraction of HireReady interview data\nconst desc = $json.description || '';\n\nconst userId = (desc.match(/User ID:\\s*([^\\n]+)/) || [])[1];\nconst userName = (desc.match(/User:\\s*([^\\n]+)/) || [])[1];\nconst phone = (desc.match(/Phone:\\s*(\\+\\d+)/) || [])[1];\n\nif (!userId || !phone) {\n  return [];\n}\n\nreturn [{\n  json: {\n    eventId: $json.id,\n    userId: userId.trim(),\n    userName: userName ? userName.trim() : 'Candidate',\n    phone: phone.trim(),\n    startTime: $json.start.dateTime\n  }\n}];"
+      },
+      "id": "extract-data",
+      "name": "Extract Interview Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+
+    {
+      "parameters": {
+        "url": "https://your-ngrok-url.ngrok.io/phonic/initiate-call",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"interviewId\": \"{{$json.eventId}}\",\n  \"userId\": \"{{$json.userId}}\",\n  \"userName\": \"{{$json.userName}}\"\n}"
+      },
+      "id": "initiate-call",
+      "name": "Initiate Browser Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1300, 300]
+    },
+
+    {
+      "parameters": {
+        "calendarId": "vanshika131105@gmail.com",
+        "eventId": "={{$json.eventId}}",
+        "updateFields": {
+          "description": "={{$json.description}}\n[HIREREADY_PROCESSED]"
+        }
+      },
+      "id": "mark-processed",
+      "name": "Mark Event as Processed",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 2,
+      "position": [1520, 300]
+    }
+  ],
+  "connections": {
+    "Google Calendar Trigger": {
+      "main": [[{ "node": "IF Upcoming Event", "type": "main", "index": 0 }]]
+    },
+    "IF Upcoming Event": {
+      "main": [[{ "node": "Filter HireReady Events", "type": "main", "index": 0 }]]
+    },
+    "Filter HireReady Events": {
+      "main": [[{ "node": "Extract Interview Data", "type": "main", "index": 0 }]]
+    },
+    "Extract Interview Data": {
+      "main": [[{ "node": "Notify Backend", "type": "main", "index": 0 }]]
+    },
+    "Notify Backend": {
+      "main": [[{ "node": "Initiate Browser Call", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

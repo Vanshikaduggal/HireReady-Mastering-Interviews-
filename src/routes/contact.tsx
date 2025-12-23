@@ -123,7 +123,7 @@ const ContactPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email us at</p>
-                  <p className="text-base font-semibold text-gray-900">support@aimockinterview.com</p>
+                  <p className="text-base font-semibold text-gray-900">support@hireready.com</p>
                 </div>
               </div>
 

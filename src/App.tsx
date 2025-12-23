@@ -16,6 +16,9 @@ import { Feedback } from "./routes/feedback"
 import ContactPage from "./routes/contact"
 import AboutPage from "./routes/about"
 import ServicesPage from "./routes/services"
+import PhonicSchedulePage from "./routes/phonic-schedule"
+import PhonicResultsPage from "./routes/phonic-results"
+import PhoneInterviewClient from "./routes/phone-interview-client"
 
 const App = () => {
   return (
@@ -54,6 +57,9 @@ const App = () => {
               element={<MockInterviewPage />}
             />
             <Route path="feedback/:interviewId" element={<Feedback />} />
+            <Route path="phonic-schedule" element={<PhonicSchedulePage />} />
+            <Route path="phonic-results/:interviewId" element={<PhonicResultsPage />} />
+            <Route path="phone-client" element={<PhoneInterviewClient />} />
           </Route>
         </Route>
       </Routes>

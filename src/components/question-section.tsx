@@ -72,12 +72,12 @@ export const QuestionSection = ({ questions }: QuestionSectionProps) => {
 
     const handleSaveAnswer = (userAnswer: string) => {
         const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
-        const newAnswer = {
+        // Answer is saved in RecordAnswer component
+        console.log('Answer saved:', {
             questionId: currentQuestion.id,
             userAnswer,
             timeTaken
-        };
-        setAnswers(prev => [...prev, newAnswer]);
+        });
     };
 
     const formatTime = (seconds: number) => {

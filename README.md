@@ -1,4 +1,4 @@
-# AI Mock Interview Platform
+# HireReady - AI Mock Interview Platform
 
 A modern web application that provides AI-powered mock interviews to help users prepare for real job interviews. The platform uses Google's Generative AI to simulate realistic interview scenarios and provide detailed feedback.
 

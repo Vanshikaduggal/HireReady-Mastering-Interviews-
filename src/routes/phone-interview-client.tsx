@@ -215,7 +215,7 @@ export default function PhoneInterviewClient() {
                 <Phone className="w-12 h-12 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-blue-600">📞 Incoming Call!</p>
-              <p className="text-lg text-gray-700">Your AI Mock Interview is starting</p>
+              <p className="text-lg text-gray-700">Your HireReady Interview is starting</p>
               
               <div className="flex gap-4 justify-center">
                 <Button

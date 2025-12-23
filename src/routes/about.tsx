@@ -7,7 +7,7 @@ const AboutPage: React.FC = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-            About AI Mock Interview
+            About HireReady
           </h1>
           <p className="mt-3 max-w-2xl mx-auto text-lg text-gray-600">
             Empowering candidates with AI-powered interview preparation to help them land their dream jobs.
@@ -19,7 +19,7 @@ const AboutPage: React.FC = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-gray-600 mb-6">
-              At AI Mock Interview, we're revolutionizing the way candidates prepare for job interviews. 
+              At HireReady, we're revolutionizing the way candidates prepare for job interviews. 
               Our mission is to make interview preparation accessible, effective, and personalized for everyone, 
               regardless of their background or experience level.
             </p>
@@ -121,7 +121,7 @@ const AboutPage: React.FC = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to Ace Your Next Interview?</h2>
           <p className="text-gray-600 mb-6">
-            Join thousands of successful candidates who have improved their interview skills with AI Mock Interview.
+            Join thousands of successful candidates who have improved their interview skills with HireReady.
           </p>
           <a
             href="/signup"

@@ -55,7 +55,7 @@ export const Dashboard = () => {
                 {/* headings */}
                 <Headings
                 title="Dashboard"
-                description="Create and start you AI Mock interview"
+                description="Create and start your HireReady interview"
                 />
                 <div className="flex items-center gap-2">
                 {interviews.length > 0 && (

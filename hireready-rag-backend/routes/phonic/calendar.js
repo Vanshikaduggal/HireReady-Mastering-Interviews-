@@ -30,14 +30,20 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Safe Date calculation (no manual IST math)
-    const start = new Date(scheduledAt);
-    const end = new Date(start.getTime() + duration * 60 * 1000);
+    // Calculate end time by adding duration to start time
+    // Parse scheduledAt to get timestamp, add duration minutes
+    const startDate = new Date(scheduledAt);
+    const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
+    
+    // Format times for Google Calendar (local time format, no Z)
+    // If scheduledAt has Z, remove it; otherwise keep as-is
+    const startDateTime = scheduledAt.endsWith('Z') ? scheduledAt.replace('Z', '') : scheduledAt;
+    const endDateTime = endDate.toISOString().slice(0, -1); // Remove Z
 
     console.log(`📅 Scheduling phonic interview for ${userName || userPhone}`);
-    console.log(`   Start: ${start.toISOString()}`);
-    console.log(`   End: ${end.toISOString()}`);
-    console.log(`   Timezone: ${timezone}`);
+    console.log(`   Start: ${startDateTime} (${timezone})`);
+    console.log(`   End: ${endDateTime} (${timezone})`);
+    console.log(`   Duration: ${duration} minutes`);
 
     // Create Google Calendar event
     const auth = await oauth2Client.getClient();
@@ -46,11 +52,11 @@ router.post("/", async (req, res) => {
       summary: `[PHONIC] HireReady – Phonic Mock Interview (${userName || "User"})`,
       description: `[HIREREADY_INTERVIEW]\nAI-powered phone interview\nUser: ${userName || "N/A"}\nPhone: ${userPhone}\nUser ID: ${userId}\nType: PHONIC_INTERVIEW`,
       start: {
-        dateTime: start.toISOString(),
+        dateTime: startDateTime,
         timeZone: timezone,
       },
       end: {
-        dateTime: end.toISOString(),
+        dateTime: endDateTime,
         timeZone: timezone,
       },
       reminders: {
@@ -86,7 +92,7 @@ router.post("/", async (req, res) => {
       userId,
       userPhone,
       userName: userName || null,
-      scheduledAt: start.toISOString(),
+      scheduledAt: startDate.toISOString(),
       duration,
       status: "scheduled",
       createdAt: new Date().toISOString(),

@@ -31,12 +31,17 @@ router.post("/", async (req, res) => {
     console.log(`   User: ${userName || "Unknown"}`);
 
     // Create call to browser client (NOT phone number!)
+    // Use inline TwiML to keep call alive for 30 minutes
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="Polly.Joanna">Hello! Welcome to HireReady AI Phone Interview. Your interview will begin shortly. Please stay on the line.</Say>
+  <Pause length="1800"/>
+</Response>`;
+
     const call = await client.calls.create({
       to: `client:${clientIdentity}`,  // Browser client, not phone!
       from: process.env.TWILIO_PHONE_NUMBER,
-      url: `${process.env.BACKEND_PUBLIC_URL}/phonic/webhook/voice?interviewId=${interviewId}`,
-      statusCallback: `${process.env.BACKEND_PUBLIC_URL}/phonic/webhook/status`,
-      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      twiml: twiml,
     });
 
     console.log(`✅ Call initiated: ${call.sid}`);

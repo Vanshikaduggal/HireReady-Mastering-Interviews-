@@ -7,7 +7,6 @@ import phonicTwilioRoute from "./routes/phonic/twilio-webhook.js";
 import phonicFeedbackRoute from "./routes/phonic/feedback.js";
 import phonicTokenRoute from "./routes/phonic/token.js";
 import phonicCallRoute from "./routes/phonic/initiate-call.js";
-import { startCalendarScheduler } from "./services/calendar-scheduler.js";
 
 dotenv.config();
 
@@ -44,8 +43,5 @@ app.listen(PORT, () => {
   console.log(`📞 Phonic interview endpoints ready`);
   console.log(`🧠 Using Gemini for AI feedback (FREE!)`);
   console.log(`🌐 Browser-based calls enabled (Twilio Client SDK)`);
-  console.log(`📅 Calendar scheduler enabled (NO n8n REQUIRED!)`);
-  
-  // Start calendar scheduler
-  startCalendarScheduler();
+  console.log(`⚡ n8n workflow integration ready`);
 });

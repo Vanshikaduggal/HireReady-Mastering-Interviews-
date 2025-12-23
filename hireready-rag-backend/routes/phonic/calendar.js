@@ -19,44 +19,39 @@ const oauth2Client = new google.auth.GoogleAuth({
  * POST /phonic/schedule
  * Schedule a phonic interview
  */
-router.post("/schedule", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { userId, userName, userPhone, scheduledDate, scheduledTime, duration = 15 } = req.body;
+    const { userId, userName, userPhone, scheduledAt, timezone = "Asia/Kolkata", duration = 15 } = req.body;
 
     // Validation
-    if (!userId || !userPhone || !scheduledDate || !scheduledTime) {
+    if (!userId || !userPhone || !scheduledAt) {
       return res.status(400).json({ 
-        error: "Missing required fields: userId, userPhone, scheduledDate, scheduledTime" 
+        error: "Missing required fields: userId, userPhone, scheduledAt" 
       });
     }
 
-    // Combine date and time (user inputs are in IST)
-    const startDateTimeStr = `${scheduledDate}T${scheduledTime}:00`;
-    
-    // Calculate end time
-    const startDateTime = new Date(startDateTimeStr);
-    const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
-    const endHours = String(endDateTime.getHours()).padStart(2, '0');
-    const endMinutes = String(endDateTime.getMinutes()).padStart(2, '0');
-    const endDateTimeStr = `${scheduledDate}T${endHours}:${endMinutes}:00`;
+    // Safe Date calculation (no manual IST math)
+    const start = new Date(scheduledAt);
+    const end = new Date(start.getTime() + duration * 60 * 1000);
 
     console.log(`📅 Scheduling phonic interview for ${userName || userPhone}`);
-    console.log(`   Start (IST): ${startDateTimeStr}`);
-    console.log(`   End (IST): ${endDateTimeStr}`);
+    console.log(`   Start: ${start.toISOString()}`);
+    console.log(`   End: ${end.toISOString()}`);
+    console.log(`   Timezone: ${timezone}`);
 
     // Create Google Calendar event
     const auth = await oauth2Client.getClient();
     
     const event = {
-      summary: `HireReady – Phonic Mock Interview (${userName || "User"})`,
-      description: `AI-powered phone interview\nUser: ${userName || "N/A"}\nPhone: ${userPhone}\nUser ID: ${userId}`,
+      summary: `[PHONIC] HireReady – Phonic Mock Interview (${userName || "User"})`,
+      description: `[HIREREADY_INTERVIEW]\nAI-powered phone interview\nUser: ${userName || "N/A"}\nPhone: ${userPhone}\nUser ID: ${userId}\nType: PHONIC_INTERVIEW`,
       start: {
-        dateTime: startDateTimeStr,  // Pass IST time directly with timezone
-        timeZone: "Asia/Kolkata",    // Let Google Calendar handle UTC conversion
+        dateTime: start.toISOString(),
+        timeZone: timezone,
       },
       end: {
-        dateTime: endDateTimeStr,    // Pass IST time directly with timezone
-        timeZone: "Asia/Kolkata",
+        dateTime: end.toISOString(),
+        timeZone: timezone,
       },
       reminders: {
         useDefault: false,
@@ -91,7 +86,7 @@ router.post("/schedule", async (req, res) => {
       userId,
       userPhone,
       userName: userName || null,
-      scheduledAt: startDateTime.toISOString(),
+      scheduledAt: start.toISOString(),
       duration,
       status: "scheduled",
       createdAt: new Date().toISOString(),

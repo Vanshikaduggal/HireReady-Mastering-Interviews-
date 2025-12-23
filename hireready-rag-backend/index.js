@@ -5,6 +5,9 @@ import chatRoute from "./routes/chat.js";
 import phonicCalendarRoute from "./routes/phonic/calendar.js";
 import phonicTwilioRoute from "./routes/phonic/twilio-webhook.js";
 import phonicFeedbackRoute from "./routes/phonic/feedback.js";
+import phonicTokenRoute from "./routes/phonic/token.js";
+import phonicCallRoute from "./routes/phonic/initiate-call.js";
+import { startCalendarScheduler } from "./services/calendar-scheduler.js";
 
 dotenv.config();
 
@@ -18,6 +21,8 @@ app.use("/chat", chatRoute);
 app.use("/phonic/schedule", phonicCalendarRoute);
 app.use("/phonic/webhook", phonicTwilioRoute);
 app.use("/phonic/feedback", phonicFeedbackRoute);
+app.use("/phonic/token", phonicTokenRoute);
+app.use("/phonic/initiate-call", phonicCallRoute);
 
 app.get("/", (req, res) => {
   res.json({ 
@@ -26,7 +31,9 @@ app.get("/", (req, res) => {
       chat: "/chat",
       phonicScheduling: "/phonic/schedule",
       phonicWebhooks: "/phonic/webhook",
-      phonicFeedback: "/phonic/feedback"
+      phonicFeedback: "/phonic/feedback",
+      phonicToken: "/phonic/token",
+      phonicCall: "/phonic/initiate-call"
     }
   });
 });
@@ -36,4 +43,9 @@ app.listen(PORT, () => {
   console.log(`🚀 RAG server running on http://localhost:${PORT}`);
   console.log(`📞 Phonic interview endpoints ready`);
   console.log(`🧠 Using Gemini for AI feedback (FREE!)`);
+  console.log(`🌐 Browser-based calls enabled (Twilio Client SDK)`);
+  console.log(`📅 Calendar scheduler enabled (NO n8n REQUIRED!)`);
+  
+  // Start calendar scheduler
+  startCalendarScheduler();
 });

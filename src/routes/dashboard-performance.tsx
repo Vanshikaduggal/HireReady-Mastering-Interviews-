@@ -29,7 +29,6 @@ export const DashboardPerformance = () => {
     avgTimePerQuestion: 0,
   });
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -62,7 +61,6 @@ export const DashboardPerformance = () => {
         })) as UserAnswer[];
 
         setInterviews(interviewsData);
-        setUserAnswers(answersData);
 
         // Calculate statistics
         calculateStats(interviewsData, answersData);
@@ -91,7 +89,7 @@ export const DashboardPerformance = () => {
 
     // Calculate average score per interview using real ratings from Firebase
     const interviewScores = Object.entries(answersByInterview).map(
-      ([mockId, answers]) => {
+      ([, answers]) => {
         // Calculate score based on ratings (out of 10) from AI evaluation
         const totalRating = answers.reduce((sum, a) => sum + (a.rating || 0), 0);
         const avgRating = totalRating / answers.length;

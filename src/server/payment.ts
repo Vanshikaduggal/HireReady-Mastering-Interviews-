@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
@@ -10,7 +10,7 @@ const razorpay = new Razorpay({
 });
 
 // Create a new order
-router.post('/create-order', async (req, res) => {
+router.post('/create-order', async (req: Request, res: Response) => {
   try {
     const { amount } = req.body;
     
@@ -29,7 +29,7 @@ router.post('/create-order', async (req, res) => {
 });
 
 // Verify payment
-router.post('/verify-payment', async (req, res) => {
+router.post('/verify-payment', async (req: Request, res: Response) => {
   try {
     const {
       razorpayPaymentId,

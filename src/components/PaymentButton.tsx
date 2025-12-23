@@ -9,7 +9,6 @@ interface PaymentButtonProps {
 
 const PaymentButton: React.FC<PaymentButtonProps> = ({
   amount,
-  onSuccess,
   onError,
 }) => {
   const handlePayment = async () => {

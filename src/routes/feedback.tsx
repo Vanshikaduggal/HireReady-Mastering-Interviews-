@@ -94,7 +94,7 @@ export const Feedback = () => {
     if (feedbacks.length === 0) return "0.0";
 
     const totalRatings = feedbacks.reduce(
-      (acc, feedback) => acc + feedback.rating,
+      (acc, feedback) => acc + (feedback.rating ?? 0),
       0
     );
 

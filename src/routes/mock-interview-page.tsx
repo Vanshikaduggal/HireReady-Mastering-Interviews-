@@ -6,7 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 import { CustomBreadCrumb } from "@/components/custom-bread-crumb";
 
-import { Video, VideoOff, AlertTriangle } from "lucide-react";
+import { VideoOff, AlertTriangle } from "lucide-react";
 import { QuestionSection } from "@/components/question-section";
 import WebCam from "react-webcam";
 import { Button } from "@/components/ui/button";

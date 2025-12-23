@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { cn } from "@/lib/utils";
 import { TooltipButton } from "./tooltip-button";
 import { Volume2, VolumeX, Clock, ChevronRight } from "lucide-react";
@@ -15,7 +14,6 @@ interface QuestionSectionProps {
 export const QuestionSection = ({ questions }: QuestionSectionProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [timeLeft, setTimeLeft] = useState(questions[0]?.timeLimitSec || 300);
-    const [answers, setAnswers] = useState<Array<{questionId: string, userAnswer: string, timeTaken: number}>>([]);
     const [questionStartTime, setQuestionStartTime] = useState(Date.now());
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentSpeech, setCurrentSpeech] = useState<SpeechSynthesisUtterance | null>(null);
